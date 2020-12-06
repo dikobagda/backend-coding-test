@@ -11,10 +11,10 @@ const logger = winston.createLogger({
     format: winston.format.json(),
     defaultMeta: { service: 'user-service' },
     transports: [
-      new winston.transports.File({ filename: 'error.log', level: 'error' }),
-      new winston.transports.File({ filename: 'info.log' }),
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'info.log' }),
     ],
-  });
+});
 
 module.exports = (db) => {
     app.get('/health', (req, res) => res.send('Healthy'));
@@ -32,7 +32,7 @@ module.exports = (db) => {
             logger.log({
                 level: 'info',
                 message: {
-                    error_code : 'VALIDATION_ERROR',
+                    error_code: 'VALIDATION_ERROR',
                     message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
                 }
             });
@@ -46,7 +46,7 @@ module.exports = (db) => {
             logger.log({
                 level: 'info',
                 message: {
-                    error_code : 'VALIDATION_ERROR',
+                    error_code: 'VALIDATION_ERROR',
                     message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
                 }
             });
@@ -60,7 +60,7 @@ module.exports = (db) => {
             logger.log({
                 level: 'info',
                 message: {
-                    error_code : 'VALIDATION_ERROR',
+                    error_code: 'VALIDATION_ERROR',
                     message: 'Rider name must be a non empty string'
                 }
             });
@@ -74,7 +74,7 @@ module.exports = (db) => {
             logger.log({
                 level: 'info',
                 message: {
-                    error_code : 'VALIDATION_ERROR',
+                    error_code: 'VALIDATION_ERROR',
                     message: 'Rider name must be a non empty string'
                 }
             });
@@ -88,7 +88,7 @@ module.exports = (db) => {
             logger.log({
                 level: 'info',
                 message: {
-                    error_code : 'VALIDATION_ERROR',
+                    error_code: 'VALIDATION_ERROR',
                     message: 'Rider name must be a non empty string'
                 }
             });
@@ -99,13 +99,13 @@ module.exports = (db) => {
         }
 
         var values = [req.body.start_lat, req.body.start_long, req.body.end_lat, req.body.end_long, req.body.rider_name, req.body.driver_name, req.body.driver_vehicle];
-        
+
         db.run('INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)', values, function (err) {
             if (err) {
                 logger.log({
                     level: 'info',
                     message: {
-                        error_code : 'SERVER_ERROR',
+                        error_code: 'SERVER_ERROR',
                         message: 'Unknown error'
                     }
                 });
@@ -120,7 +120,7 @@ module.exports = (db) => {
                     logger.log({
                         level: 'info',
                         message: {
-                            error_code : 'SERVER_ERROR',
+                            error_code: 'SERVER_ERROR',
                             message: 'Unknown error'
                         }
                     });
@@ -138,16 +138,16 @@ module.exports = (db) => {
     app.get('/rides', (req, res) => {
         let page = req.query.page;
         let limit = req.query.limit;
-        let startIndex = 0
+        let startIndex = 0;
         logger.log({
             level: 'info',
             message: {
                 message: '💚💚💚 start request api rides 💚💚💚'
             }
-        })
+        });
         if (typeof page != 'undefined' && typeof limit != 'undefined') {
             startIndex = (page - 1) * limit;
-        }  else {
+        } else {
             logger.log({
                 level: 'info',
                 message: {
@@ -158,14 +158,14 @@ module.exports = (db) => {
             // for better query, limit set to default 1000 records
             limit = 1000;
         }
-        
+
 
         db.all(`SELECT * FROM Rides ORDER BY rideID ASC limit '${limit}' OFFSET '${startIndex}'`, function (err, rows) {
             if (err) {
                 logger.log({
                     level: 'info',
                     message: {
-                        error_code : 'SERVER_ERROR',
+                        error_code: 'SERVER_ERROR',
                         message: 'Unknown error'
                     }
                 });
@@ -179,7 +179,7 @@ module.exports = (db) => {
                 logger.log({
                     level: 'info',
                     message: {
-                        error_code : 'RIDES_NOT_FOUND_ERROR',
+                        error_code: 'RIDES_NOT_FOUND_ERROR',
                         message: 'Could not find any rides'
                     }
                 });
@@ -196,7 +196,7 @@ module.exports = (db) => {
             message: {
                 message: '💚💚💚 successfully request api rides 💚💚💚'
             }
-        })
+        });
     });
 
     app.get('/rides/:id', (req, res) => {
@@ -205,7 +205,7 @@ module.exports = (db) => {
                 logger.log({
                     level: 'info',
                     message: {
-                        error_code : 'SERVER_ERROR',
+                        error_code: 'SERVER_ERROR',
                         message: 'Unknown error'
                     }
                 });

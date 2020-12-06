@@ -8,13 +8,12 @@ const db = new sqlite3.Database(':memory:');
 const describe = mocha.describe;
 const before = mocha.before;
 const it = mocha.it;
-const have = mocha.have;
 const app = require('../src/app')(db);
 const buildSchemas = require('../src/schemas');
 
 describe('API tests', () => {
     before((done) => {
-        db.serialize((err) => { 
+        db.serialize((err) => {
             if (err) {
                 return done(err);
             }
@@ -25,73 +24,7 @@ describe('API tests', () => {
         });
     });
 
-    describe('GET /rides', ()=>{
-        it('get all rides', (done) => {
-            request(app)
-                .get('/rides')
-                .expect('Content-Type', /json/)
-                .expect(200, done);
-        });
-    });
-
-    describe('POST /rides', () => {
-        it('add rides api', (done) => {
-            request(app)
-            .post('/rides')
-            .send({ "start_lat": 1, 'start_long': 2, "end_lat": 3, "end_long": 4, "rider_name": "diko", "driver_name": "bagda", "driver_vehicle": "motorcycle" })
-            .expect('Content-Type', /json/)
-            .end(function(err, res) {
-                const startLatitude = Number(res.body.start_lat);
-                const startLongitude = Number(res.body.start_long);
-                const endLatitude = Number(res.body.end_lat);
-                const endLongitude = Number(res.body.end_long);
-                const riderName = res.body.rider_name;
-                const driverName = res.body.driver_name;
-                const driverVehicle = res.body.driver_vehicle;
-
-                if (err) done(err);
-                    if (startLatitude < -90 || startLatitude > 90 || startLongitude < -180 || startLongitude > 180) {
-                        
-                    }
-
-                    if (endLatitude < -90 || endLatitude > 90 || endLongitude < -180 || endLongitude > 180) {
-                       
-                    }
-            
-                    if (typeof riderName !== 'string' || riderName.length < 1) {
-                        
-                    }
-            
-                    if (typeof driverName !== 'string' || driverName.length < 1) {
-                        
-                    }
-            
-                    if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
-                       
-                    }
-                    var values = [res.body.start_lat, res.body.start_long, res.body.end_lat, res.body.end_long, res.body.rider_name, res.body.driver_name, res.body.driver_vehicle];
-            
-                    db.run('INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)', values, function (err) {
-                        if (err) {
-                            
-                        }
-    
-                        db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (err, rows) {
-                            if (err) {
-                               
-                            }
-    
-                            // res.send(rows);
-                        });
-                    });
-                });
-                
-              done();
-        });
-        
-    });
-    
-    describe('GET /health', () => {
+    describe('GET /health', async () => {
         it('should return health', (done) => {
             request(app)
                 .get('/health')
@@ -99,4 +32,63 @@ describe('API tests', () => {
                 .expect(200, done);
         });
     });
+
+    describe('POST /rides', async () => {
+        let rides = {
+            'start_lat': 10,
+            'start_long': 12,
+            'end_lat': 11,
+            'end_long': 12,
+            'rider_name': 'diko1',
+            'driver_name': 'john wick',
+            'driver_vehicle': 'motorcycle'
+        };
+
+        it('success add rides api', (done) => {
+            request(app)
+                .post('/rides')
+                .send(rides)
+                .expect('Content-Type', /json/)
+                .expect(200, done);
+
+        });
+
+    });
+
+    describe('GET /rides', async () => {
+        it('Success get all rides without query parameter', (done) => {
+            request(app)
+                .get('/rides')
+                .expect('Content-Type', /json/)
+                .expect(200, done);
+        });
+
+        it('Success get all rides with query parameter', (done) => {
+            request(app)
+                .get('/rides?page=1&limit=2')
+                .expect('Content-Type', /json/)
+                .expect(200, done);
+        });
+
+        it('Server error when get all rides with missing query parameter', (done) => {
+            request(app)
+                .get('/rides?page=1&limit=')
+                .expect('Content-Type', /json/)
+                .expect(200, done);
+        });
+
+        it('Rider not found', (done) => {
+            request(app)
+                .get('/rides/2')
+                .expect('Content-Type', /json/)
+                .expect(
+                    {
+                        'error_code': 'RIDES_NOT_FOUND_ERROR',
+                        'message': 'Could not find any rides'
+                    }, done);
+        });
+
+    });
+
+
 });
