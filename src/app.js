@@ -136,7 +136,12 @@ module.exports = (db) => {
     });
 
     app.get('/rides', (req, res) => {
-        db.all('SELECT * FROM Rides', function (err, rows) {
+        const page = req.query.page;
+        const limit = req.query.limit;
+
+        const startIndex = (page - 1) * limit;
+
+        db.all(`SELECT * FROM Rides ORDER BY rideID ASC limit '${limit}' OFFSET '${startIndex}'`, function (err, rows) {
             if (err) {
                 logger.log({
                     level: 'info',
