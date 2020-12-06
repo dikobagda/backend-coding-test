@@ -5,6 +5,16 @@ const app = express();
 
 const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
+const winston = require('winston');
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'user-service' },
+    transports: [
+      new winston.transports.File({ filename: 'error.log', level: 'error' }),
+      new winston.transports.File({ filename: 'info.log' }),
+    ],
+  });
 
 module.exports = (db) => {
     app.get('/health', (req, res) => res.send('Healthy'));
@@ -19,6 +29,13 @@ module.exports = (db) => {
         const driverVehicle = req.body.driver_vehicle;
 
         if (startLatitude < -90 || startLatitude > 90 || startLongitude < -180 || startLongitude > 180) {
+            logger.log({
+                level: 'info',
+                message: {
+                    error_code : 'VALIDATION_ERROR',
+                    message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
+                }
+            });
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
@@ -26,6 +43,13 @@ module.exports = (db) => {
         }
 
         if (endLatitude < -90 || endLatitude > 90 || endLongitude < -180 || endLongitude > 180) {
+            logger.log({
+                level: 'info',
+                message: {
+                    error_code : 'VALIDATION_ERROR',
+                    message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
+                }
+            });
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
@@ -33,6 +57,13 @@ module.exports = (db) => {
         }
 
         if (typeof riderName !== 'string' || riderName.length < 1) {
+            logger.log({
+                level: 'info',
+                message: {
+                    error_code : 'VALIDATION_ERROR',
+                    message: 'Rider name must be a non empty string'
+                }
+            });
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'Rider name must be a non empty string'
@@ -40,6 +71,13 @@ module.exports = (db) => {
         }
 
         if (typeof driverName !== 'string' || driverName.length < 1) {
+            logger.log({
+                level: 'info',
+                message: {
+                    error_code : 'VALIDATION_ERROR',
+                    message: 'Rider name must be a non empty string'
+                }
+            });
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'Rider name must be a non empty string'
@@ -47,6 +85,13 @@ module.exports = (db) => {
         }
 
         if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
+            logger.log({
+                level: 'info',
+                message: {
+                    error_code : 'VALIDATION_ERROR',
+                    message: 'Rider name must be a non empty string'
+                }
+            });
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'Rider name must be a non empty string'
@@ -57,6 +102,13 @@ module.exports = (db) => {
         
         db.run('INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)', values, function (err) {
             if (err) {
+                logger.log({
+                    level: 'info',
+                    message: {
+                        error_code : 'SERVER_ERROR',
+                        message: 'Unknown error'
+                    }
+                });
                 return res.send({
                     error_code: 'SERVER_ERROR',
                     message: 'Unknown error'
@@ -65,6 +117,13 @@ module.exports = (db) => {
 
             db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (err, rows) {
                 if (err) {
+                    logger.log({
+                        level: 'info',
+                        message: {
+                            error_code : 'SERVER_ERROR',
+                            message: 'Unknown error'
+                        }
+                    });
                     return res.send({
                         error_code: 'SERVER_ERROR',
                         message: 'Unknown error'
@@ -79,6 +138,13 @@ module.exports = (db) => {
     app.get('/rides', (req, res) => {
         db.all('SELECT * FROM Rides', function (err, rows) {
             if (err) {
+                logger.log({
+                    level: 'info',
+                    message: {
+                        error_code : 'SERVER_ERROR',
+                        message: 'Unknown error'
+                    }
+                });
                 return res.send({
                     error_code: 'SERVER_ERROR',
                     message: 'Unknown error'
@@ -86,6 +152,13 @@ module.exports = (db) => {
             }
 
             if (rows.length === 0) {
+                logger.log({
+                    level: 'info',
+                    message: {
+                        error_code : 'RIDES_NOT_FOUND_ERROR',
+                        message: 'Could not find any rides'
+                    }
+                });
                 return res.send({
                     error_code: 'RIDES_NOT_FOUND_ERROR',
                     message: 'Could not find any rides'
@@ -99,6 +172,13 @@ module.exports = (db) => {
     app.get('/rides/:id', (req, res) => {
         db.all(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`, function (err, rows) {
             if (err) {
+                logger.log({
+                    level: 'info',
+                    message: {
+                        error_code : 'SERVER_ERROR',
+                        message: 'Unknown error'
+                    }
+                });
                 return res.send({
                     error_code: 'SERVER_ERROR',
                     message: 'Unknown error'
@@ -106,6 +186,13 @@ module.exports = (db) => {
             }
 
             if (rows.length === 0) {
+                logger.log({
+                    level: 'info',
+                    message: {
+                        error_code: 'RIDES_NOT_FOUND_ERROR',
+                        message: 'Could not find any rides'
+                    }
+                });
                 return res.send({
                     error_code: 'RIDES_NOT_FOUND_ERROR',
                     message: 'Could not find any rides'
