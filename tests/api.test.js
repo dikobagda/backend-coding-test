@@ -34,7 +34,7 @@ describe('API tests', () => {
     });
 
     describe('POST /rides', async () => {
-        let rides = {
+        let complete_data_rides = {
             'start_lat': 10,
             'start_long': 12,
             'end_lat': 11,
@@ -44,15 +44,83 @@ describe('API tests', () => {
             'driver_vehicle': 'motorcycle'
         };
 
+        let outofrange_start_lat_start_long = {
+            'start_lat': -91,
+            'start_long': 181,
+            'end_lat': 11,
+            'end_long': 12,
+            'rider_name': 'diko1',
+            'driver_name': 'john wick',
+            'driver_vehicle': 'motorcycle'
+        };
+
+        let outofrange_end_lat_end_long = {
+            'start_lat': 1,
+            'start_long': 2,
+            'end_lat': -91,
+            'end_long': 181,
+            'rider_name': 'diko1',
+            'driver_name': 'john wick',
+            'driver_vehicle': 'motorcycle'
+        };
+
+        let rider_name_empty = {
+            'start_lat': 1,
+            'start_long': 2,
+            'end_lat': 1,
+            'end_long': 2,
+            'rider_name': '',
+            'driver_name': 'john wick',
+            'driver_vehicle': 'motorcycle'
+        };
+
+
         it('success add rides api', (done) => {
             request(app)
                 .post('/rides')
-                .send(rides)
+                .send(complete_data_rides)
                 .expect('Content-Type', /json/)
                 .expect(200, done);
 
         });
 
+        it('validation test : Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively', (done) => {
+            request(app)
+                .post('/rides')
+                .send(outofrange_start_lat_start_long)
+                .expect('Content-Type', /json/)
+                .expect({
+                    error_code: 'VALIDATION_ERROR',
+                    message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
+                }, done);
+
+        });
+
+        it('validation test : End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively', (done) => {
+            request(app)
+                .post('/rides')
+                .send(outofrange_end_lat_end_long)
+                .expect('Content-Type', /json/)
+                .expect(
+                    {
+                        error_code: 'VALIDATION_ERROR',
+                        message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
+                    }, done);
+
+        });
+
+        it('validation test : Rider name must be a non empty string', (done) => {
+            request(app)
+                .post('/rides')
+                .send(rider_name_empty)
+                .expect('Content-Type', /json/)
+                .expect(
+                    {
+                        error_code: 'VALIDATION_ERROR',
+                        message: 'Rider name must be a non empty string'
+                    }, done);
+
+        });
     });
 
     describe('GET /rides', async () => {
