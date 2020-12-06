@@ -136,10 +136,29 @@ module.exports = (db) => {
     });
 
     app.get('/rides', (req, res) => {
-        const page = req.query.page;
-        const limit = req.query.limit;
-
-        const startIndex = (page - 1) * limit;
+        let page = req.query.page;
+        let limit = req.query.limit;
+        let startIndex = 0
+        logger.log({
+            level: 'info',
+            message: {
+                message: '💚💚💚 start request api rides 💚💚💚'
+            }
+        })
+        if (typeof page != 'undefined' && typeof limit != 'undefined') {
+            startIndex = (page - 1) * limit;
+        }  else {
+            logger.log({
+                level: 'info',
+                message: {
+                    message: 'Get all records'
+                }
+            });
+            startIndex = 0;
+            // for better query, limit set to default 1000 records
+            limit = 1000;
+        }
+        
 
         db.all(`SELECT * FROM Rides ORDER BY rideID ASC limit '${limit}' OFFSET '${startIndex}'`, function (err, rows) {
             if (err) {
@@ -172,6 +191,12 @@ module.exports = (db) => {
 
             res.send(rows);
         });
+        logger.log({
+            level: 'info',
+            message: {
+                message: '💚💚💚 successfully request api rides 💚💚💚'
+            }
+        })
     });
 
     app.get('/rides/:id', (req, res) => {
