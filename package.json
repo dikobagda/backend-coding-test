@@ -31,5 +31,17 @@
     "mocha": "^6.2.3",
     "nyc": "^15.1.0",
     "supertest": "^4.0.2"
+  },
+  "husky":{
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  
+  "lint-staged": {
+    "*.{js,json,css,,md,html}":[
+      "prettier --single-quote --write",
+      "git add"
+    ]
   }
 }
