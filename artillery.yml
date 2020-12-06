@@ -1,0 +1,21 @@
+config:
+  target: "http://127.0.0.1:8010/"
+  phases:
+    - duration: 10
+      arrivalRate: 1
+scenarios:
+  - name: "server load testing"
+    flow:
+    - get:
+        url: "/rides"
+    - post:
+        url: "/rides"
+        json:
+          start_lat: 10
+          start_long: 12
+          end_lat: 11
+          end_long: 12
+          rider_name: "diko1"
+          driver_name: "john wick"
+          driver_vehicle: "motorcycle"
+        
